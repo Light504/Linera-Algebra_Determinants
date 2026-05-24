@@ -998,11 +998,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   z-index: 1;
   overflow: auto;
   padding: 4px 0;
-  transition: opacity 0.22s ease, transform 0.22s ease;
-}
-.matrix-wrap.animating {
-  opacity: 0.4;
-  transform: scale(0.985);
 }
 .matrix-fence {
   display: flex;
@@ -1021,6 +1016,14 @@ strong { color: var(--charcoal); font-weight: 600; }
 .matrix-input-grid {
   display: inline-grid;
   gap: 5px;
+}
+.matrix-input-grid.assembling input {
+  animation-name: assembleBlock;
+  animation-duration: 320ms;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.24, 0.86, 0.32, 1.01);
+  opacity: 0;
+  transform: translateY(14px) scale(0.9);
 }
 .matrix-input-grid input {
   width: 52px;
@@ -1042,6 +1045,17 @@ strong { color: var(--charcoal); font-weight: 600; }
 .matrix-input-grid input:focus {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+}
+
+@keyframes assembleBlock {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Preset row (chip buttons, natural width) ── */
@@ -1838,8 +1852,6 @@ function buildGrid(n) {
   if (!wrap) return;
   const cellPx = matrixCellPx(n);
   currentSize = n;
-  wrap.classList.add('animating');
-  window.setTimeout(() => wrap.classList.remove('animating'), 220);
 
   const fence = document.createElement('div');
   fence.className = 'matrix-fence';
@@ -1878,6 +1890,17 @@ function buildGrid(n) {
 
   wrap.innerHTML = '';
   wrap.appendChild(fence);
+
+  grid.classList.add('assembling');
+  Array.from(grid.querySelectorAll('input')).forEach((cell, idx) => {
+    cell.style.animationDelay = `${idx * 32}ms`;
+  });
+  window.setTimeout(() => {
+    grid.classList.remove('assembling');
+    Array.from(grid.querySelectorAll('input')).forEach(cell => {
+      cell.style.animationDelay = '';
+    });
+  }, n * n * 32 + 360);
 
   document.getElementById('result-panel').style.display = 'none';
   document.getElementById('error-panel').innerHTML = '';
