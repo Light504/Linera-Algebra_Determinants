@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Direct Determinants — Cofactor Expansion</title>
+
+  <!-- Latin Modern Sans via GUST e-foundry CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;500&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome (gears icon) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']] },
+      options: { skipHtmlTags:['script','noscript','style','textarea','pre'] },
+      startup: { typeset: false }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS — Scandinavian Minimalist
+═══════════════════════════════════════════ */
+:root {
+  --chalk:      #F5F7FA;
+  --white:      #FFFFFF;
+  --ash:        #E4E7EB;
+  --ash-mid:    #D1D5DB;
+  --ash-dark:   #9CA3AF;
+  --charcoal:   #1F2937;
+  --charcoal-2: #374151;
+  --charcoal-3: #6B7280;
+  --teal:       #0F766E;
+  --teal-light: #14B8A9;
+  --teal-dim:   #CCFBF1;
+  --red-soft:   #DC2626;
+  --red-dim:    #FEE2E2;
+  --shadow-sm:  0 1px 3px rgba(31,41,55,0.08), 0 1px 2px rgba(31,41,55,0.06);
+  --shadow-md:  0 4px 6px rgba(31,41,55,0.07), 0 2px 4px rgba(31,41,55,0.06);
+  --shadow-lg:  0 10px 25px rgba(31,41,55,0.10), 0 4px 10px rgba(31,41,55,0.06);
+  --shadow-key: 0 3px 0 #9CA3AF, 0 4px 6px rgba(31,41,55,0.15);
+  --shadow-key-fn: 0 3px 0 #B8BDC5, 0 4px 6px rgba(31,41,55,0.12);
+  --shadow-key-teal: 0 3px 0 #0a5a54, 0 4px 8px rgba(15,118,110,0.30);
+  --r-sm: 6px;
+  --r:    12px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+
+body {
+  background: var(--chalk);
+  color: var(--charcoal);
+  font-family: 'Source Sans 3', 'Latin Modern Sans', Helvetica, sans-serif;
+  font-weight: 400;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE SHELL
+═══════════════════════════════════════════ */
+.page-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--ash);
+  box-shadow: var(--shadow-sm);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky; top: 0; z-index: 200;
+}
+.page-header .brand {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  letter-spacing: -0.01em;
+}
+.page-header .brand span { color: var(--teal); }
+.header-meta {
+  font-size: 0.75rem;
+  color: var(--charcoal-3);
+  font-family: 'Source Code Pro', monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════
+   TWO-COLUMN LAYOUT — full viewport width
+═══════════════════════════════════════════ */
+.page-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  width: 100%;
+  min-height: calc(100vh - 56px);
+}
+
+/* LEFT — theory uses its half of the screen */
+.content-col {
+  min-width: 0;
+  padding: 40px clamp(20px, 3vw, 48px) 80px clamp(16px, 2.5vw, 40px);
+  border-right: 1px solid var(--ash);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* RIGHT — calculator column with layered background */
+.calc-col {
+  min-width: 0;
+  background: linear-gradient(180deg, var(--chalk) 0%, var(--white) 22%, var(--white) 100%);
+  padding: 24px clamp(16px, 2vw, 32px) 32px;
+  position: sticky;
+  isolation: isolate;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  box-shadow: -2px 0 12px rgba(31,41,55,0.06);
+  display: flex;
+  flex-direction: column;
+  border-left: 3px solid var(--teal-dim);
+}
+.calc-col-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.calc-bg-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 45% at 88% 12%, rgba(15, 118, 110, 0.09), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 8% 78%, rgba(15, 118, 110, 0.06), transparent 65%),
+    radial-gradient(ellipse 35% 30% at 50% 50%, rgba(15, 118, 110, 0.03), transparent 70%);
+}
+.calc-bg-grid {
+  position: absolute;
+  inset: 0;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 55%, transparent 100%);
+}
+.calc-bg-grid--fine {
+  background-image:
+    linear-gradient(rgba(15, 118, 110, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 118, 110, 0.035) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.calc-bg-grid--major {
+  background-image:
+    linear-gradient(rgba(15, 118, 110, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 118, 110, 0.055) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.calc-bg-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(15, 118, 110, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.45;
+  mask-image: linear-gradient(135deg, transparent 30%, rgba(0,0,0,0.4) 60%, transparent 95%);
+}
+.calc-bg-diagonal {
+  position: absolute;
+  inset: -20%;
+  background: repeating-linear-gradient(
+    -32deg,
+    transparent,
+    transparent 48px,
+    rgba(15, 118, 110, 0.018) 48px,
+    rgba(15, 118, 110, 0.018) 49px
+  );
+  opacity: 0.9;
+}
+.calc-bg-watermark {
+  position: absolute;
+  bottom: 5%;
+  right: -1%;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: clamp(5rem, 11vw, 9rem);
+  font-weight: 700;
+  font-style: italic;
+  color: rgba(15, 118, 110, 0.055);
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  transform: rotate(-7deg);
+  user-select: none;
+}
+.calc-col-matrix-deco {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border: 2px solid rgba(15, 118, 110, 0.07);
+  border-radius: 3px;
+}
+.calc-col-matrix-deco--tl {
+  top: 10%;
+  left: 5%;
+}
+.calc-col-matrix-deco--br {
+  bottom: 18%;
+  right: 6%;
+  width: 48px;
+  height: 48px;
+  opacity: 0.7;
+}
+.calc-col-matrix-deco::before,
+.calc-col-matrix-deco::after {
+  content: '';
+  position: absolute;
+  background: rgba(15, 118, 110, 0.05);
+}
+.calc-col-matrix-deco::before {
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+.calc-col-matrix-deco::after {
+  left: 50%;
+  top: 10%;
+  bottom: 10%;
+  width: 1px;
+  transform: translateX(-50%);
+}
+.calc-col-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+/* ── Calculator quick guide (top-left) ── */
+.calc-guide-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  max-width: 280px;
+}
+.calc-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--white);
+  border: 1px solid var(--ash);
+  border-left: 3px solid var(--teal);
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--r);
+  border-bottom-right-radius: var(--r);
+  border-bottom-left-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--charcoal-2);
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s, color 0.15s;
+}
+.calc-guide-btn:hover {
+  background: var(--teal-dim);
+  color: var(--teal);
+  box-shadow: var(--shadow-md);
+}
+.calc-guide-btn[aria-expanded="true"] {
+  background: var(--teal-dim);
+  color: var(--teal);
+  border-color: rgba(15, 118, 110, 0.35);
+}
+.calc-guide-btn .fa-lightbulb {
+  color: var(--teal);
+  font-size: 0.95rem;
+}
+.calc-guide-panel {
+  display: none;
+  margin-top: 8px;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--ash);
+  border-left: 3px solid var(--teal);
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--r-lg);
+  border-bottom-right-radius: var(--r-xl);
+  border-bottom-left-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  animation: calcGuideIn 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.calc-guide-panel.open {
+  display: block;
+}
+@keyframes calcGuideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.calc-guide-panel .tip-label {
+  margin-bottom: 10px;
+}
+.calc-guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.calc-guide-list li {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--charcoal-2);
+  padding-left: 14px;
+  position: relative;
+}
+.calc-guide-list li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--teal);
+  font-weight: 700;
+}
+
+/* ── Contextual calculator toast (short-lived) ── */
+.calc-toast {
+  position: fixed;
+  z-index: 1100;
+  max-width: 260px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.calc-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.calc-toast[hidden] {
+  display: block;
+  visibility: hidden;
+}
+.calc-toast.is-visible[hidden] {
+  visibility: visible;
+}
+.calc-toast-inner {
+  background: var(--white);
+  border: 1px solid var(--ash);
+  border-left: 3px solid var(--teal);
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--r-lg);
+  border-bottom-right-radius: var(--r-lg);
+  border-bottom-left-radius: var(--r-lg);
+  padding: 10px 13px;
+  box-shadow: var(--shadow-md);
+}
+.calc-toast-inner .tip-label {
+  margin-bottom: 4px;
+}
+.calc-toast-text {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--charcoal-2);
+}
+
+/* Wider screens: give calculator a bit more room for large matrices */
+@media (min-width: 1100px) {
+  .page-body {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SECTION NAVIGATION (left col)
+═══════════════════════════════════════════ */
+.section-tabs {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  margin-bottom: 36px;
+  border-bottom: 2px solid var(--ash);
+  padding-bottom: 0;
+}
+.sec-tab-slider {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  height: 2px;
+  background: var(--teal);
+  border-radius: 2px 2px 0 0;
+  transition: left 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 2;
+}
+.sec-tab {
+  background: none;
+  border: none;
+  padding: 8px 16px 10px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--charcoal-3);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+.sec-tab.active {
+  color: var(--teal);
+}
+.sec-tab:hover:not(.active) { color: var(--charcoal-2); }
+
+.section-panel { display: none; }
+.section-panel.active { display: block; }
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════════ */
+h1 {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--charcoal);
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+h1 em { font-style: italic; color: var(--teal); }
+h2 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin: 28px 0 12px;
+  letter-spacing: -0.01em;
+}
+h2:first-child { margin-top: 0; }
+h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin: 18px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+p { color: var(--charcoal-2); margin-bottom: 12px; font-size: 0.93rem; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--charcoal); font-weight: 600; }
+
+/* ═══════════════════════════════════════════
+   CONTENT CARDS
+═══════════════════════════════════════════ */
+.card {
+  background: var(--white);
+  border: 1px solid var(--ash);
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+/* Info panels: sharp top-left corner only (other corners rounder) */
+.content-col .card {
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--r-xl);
+  border-bottom-right-radius: var(--r-xl);
+  border-bottom-left-radius: var(--r-xl);
+}
+.card-teal {
+  border-left: 3px solid var(--teal);
+}
+.formula-box {
+  background: var(--chalk);
+  border: 1px solid var(--ash);
+  border-radius: var(--r);
+  padding: 14px 18px;
+  margin: 12px 0;
+  text-align: center;
+  font-size: 0.93rem;
+  overflow-x: auto;
+}
+.content-col .formula-box {
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--r-lg);
+  border-bottom-right-radius: var(--r-lg);
+  border-bottom-left-radius: var(--r-lg);
+}
+
+/* ── Bite-size hover tips (terms & equations) ── */
+.term-tip {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted var(--teal-light);
+  transition: color 0.15s, border-color 0.15s;
+}
+.term-tip:hover,
+.term-tip:focus-visible {
+  color: var(--teal);
+  border-bottom-color: var(--teal);
+  outline: none;
+}
+.formula-box.term-tip {
+  border-bottom: none;
+  box-shadow: inset 0 -2px 0 transparent;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+.formula-box.term-tip:hover,
+.formula-box.term-tip:focus-within {
+  background: var(--teal-dim);
+  box-shadow: inset 0 -2px 0 var(--teal-light);
+}
+/* Stop MathJax internals from stealing hover (fixes tooltip jitter) */
+.formula-box.term-tip mjx-container,
+.formula-box.term-tip mjx-assistive-mml {
+  pointer-events: none !important;
+}
+
+.tip-popup {
+  position: fixed;
+  z-index: 1000;
+  max-width: 280px;
+  padding: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.26s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.tip-popup.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.tip-popup.is-repositioning {
+  transition: opacity 0.2s ease, left 0.12s ease, top 0.12s ease;
+}
+.tip-popup:not(.is-visible) {
+  visibility: hidden;
+  pointer-events: none;
+}
+.tip-popup-inner {
+  position: relative;
+  background: var(--white);
+  color: var(--charcoal-2);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  padding: 12px 14px 13px;
+  border: 1px solid var(--ash);
+  border-left: 3px solid var(--teal);
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--r-lg);
+  border-bottom-right-radius: var(--r-xl);
+  border-bottom-left-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+}
+.tip-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 5px;
+}
+.tip-text {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--charcoal-2);
+}
+.tip-popup-inner::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: var(--white);
+  border: 1px solid var(--ash);
+  transform: rotate(45deg);
+}
+.tip-popup.above .tip-popup-inner::after {
+  bottom: -5px;
+  left: var(--tip-arrow-x, 50%);
+  margin-left: -5px;
+  border-top: none;
+  border-left: none;
+}
+.tip-popup.below .tip-popup-inner::after {
+  top: -5px;
+  left: var(--tip-arrow-x, 50%);
+  margin-left: -5px;
+  border-bottom: none;
+  border-right: none;
+}
+.key-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+.key-item {
+  background: var(--chalk);
+  border: 1px solid var(--ash);
+  border-radius: var(--r);
+  padding: 12px 14px;
+}
+.key-item .ki-label {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--charcoal-3);
+  margin-bottom: 4px;
+}
+.key-item .ki-val {
+  font-size: 0.88rem;
+  color: var(--charcoal);
+}
+
+/* ═══════════════════════════════════════════
+   WORKED STEPS
+═══════════════════════════════════════════ */
+.example-switcher {
+  position: relative;
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 3px;
+  background: var(--ash);
+  border-radius: 100px;
+  border: 1px solid var(--ash-mid);
+}
+.ex-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: calc(100% - 6px);
+  background: var(--teal);
+  border-radius: 100px;
+  box-shadow: var(--shadow-md);
+  transition: left 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+.ex-btn {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  color: var(--charcoal-3);
+  padding: 7px 16px;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  font-family: 'Source Sans 3', sans-serif;
+}
+.ex-btn.active {
+  color: var(--white);
+}
+.ex-btn:hover:not(.active) {
+  color: var(--charcoal-2);
+}
+
+/* Example panels: sharp top-left & bottom-right */
+#sec-examples .ex-panel .card {
+  border-top-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: var(--r-xl);
+  border-bottom-left-radius: var(--r-xl);
+}
+
+.ex-panel { display: none; }
+.ex-panel.active { display: block; }
+
+.step-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+.step-bubble {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--ash);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--charcoal-3);
+  margin-top: 1px;
+  box-shadow: var(--shadow-sm);
+}
+.step-body { flex: 1; }
+.step-body p { margin-bottom: 8px; }
+.math-block {
+  background: var(--chalk);
+  border: 1px solid var(--ash);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  margin: 8px 0;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+.result-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--teal-dim);
+  border: 1px solid rgba(15,118,110,0.25);
+  color: var(--teal);
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-top: 6px;
+}
+.result-pill::before { content: '∴'; font-size: 1rem; }
+
+/* ═══════════════════════════════════════════
+   SCIENTIFIC CALCULATOR — RIGHT COLUMN
+═══════════════════════════════════════════ */
+.calc-header {
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 380px;
+  padding-bottom: 14px;
+  padding-top: 44px;
+  border-bottom: 1px solid var(--ash);
+}
+.calc-header-badge {
+  display: inline-block;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: var(--teal-dim);
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  border-radius: 100px;
+  padding: 3px 10px;
+  margin-bottom: 8px;
+}
+.calc-header h2 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin: 0 0 6px;
+}
+.calc-header p {
+  font-size: 0.82rem;
+  color: var(--charcoal-3);
+  margin: 0;
+}
+
+/* ── Sci-cal body (compact pad, not full-bleed buttons) ── */
+.sci-cal {
+  background: var(--chalk);
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r-xl);
+  padding: 20px 18px 22px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  overflow: visible;
+  width: 100%;
+  max-width: 380px;
+}
+.sci-cal > .cal-display,
+.sci-cal > .size-row,
+.sci-cal > .matrix-wrap,
+.sci-cal > .preset-row,
+.sci-cal > .action-row {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* ── Display screen ── */
+.cal-display {
+  background: #ECEFF4;
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  min-height: 80px;
+  max-width: 100%;
+  box-shadow: inset 0 2px 4px rgba(31,41,55,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+.display-label {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.65rem;
+  color: var(--charcoal-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.display-value {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 1.65rem;
+  color: var(--charcoal);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-align: right;
+  min-height: 32px;
+  line-height: 1;
+}
+.display-value.is-teal { color: var(--teal); }
+.display-value.is-red  { color: var(--red-soft); }
+.display-status {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--charcoal-3);
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ── Size row (square keys, centered) ── */
+.size-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 3;
+  flex-wrap: wrap;
+}
+.size-label {
+  font-size: 0.72rem;
+  color: var(--charcoal-3);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.size-key {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  background: var(--white);
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--charcoal-3);
+  cursor: pointer;
+  box-shadow: var(--shadow-key-fn);
+  transition: all 0.08s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.size-key:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #B8BDC5;
+}
+.size-key.active {
+  background: var(--charcoal-2);
+  border-color: var(--charcoal-2);
+  color: var(--white);
+  box-shadow: 0 3px 0 #1a2130, 0 4px 6px rgba(31,41,55,0.2);
+}
+.size-key-custom .fa-gear {
+  font-size: 0.95rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.size-key-custom.active .fa-gear {
+  color: var(--white);
+}
+.calc-header .fa-gear {
+  font-size: 0.8em;
+  vertical-align: -0.05em;
+}
+
+.size-custom-wrap {
+  position: relative;
+  flex: none;
+  width: 42px;
+  height: 42px;
+}
+.size-key-custom {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+}
+
+.custom-size-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  min-width: 200px;
+  background: var(--white);
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-lg);
+}
+.custom-size-popover.open { display: block; }
+.custom-size-popover label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--charcoal-3);
+  margin-bottom: 6px;
+}
+.custom-size-popover input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r-sm);
+  padding: 0 10px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  outline: none;
+}
+.custom-size-popover input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+}
+.custom-size-popover input.invalid {
+  border-color: var(--red-soft);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+}
+.custom-size-hint {
+  font-size: 0.68rem;
+  color: var(--charcoal-3);
+  margin-bottom: 8px;
+}
+.custom-size-err {
+  font-size: 0.72rem;
+  color: var(--red-soft);
+  min-height: 1em;
+  margin-bottom: 6px;
+}
+.custom-size-apply {
+  width: 100%;
+  height: 34px;
+  background: var(--teal);
+  border: none;
+  border-radius: var(--r-sm);
+  color: var(--white);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Source Sans 3', sans-serif;
+}
+.custom-size-apply:hover { background: #0d6b63; }
+
+/* ── Matrix grid ── */
+.matrix-wrap {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  width: 100%;
+  max-height: min(52vh, 400px);
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  padding: 4px 0;
+}
+.matrix-fence {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.matrix-bracket {
+  width: 6px;
+  align-self: stretch;
+  border: 2px solid var(--ash-dark);
+  flex-shrink: 0;
+}
+.matrix-bracket.left  { border-right: none; border-radius: 3px 0 0 3px; }
+.matrix-bracket.right { border-left:  none; border-radius: 0 3px 3px 0; }
+
+.matrix-input-grid {
+  display: inline-grid;
+  gap: 5px;
+}
+.matrix-input-grid input {
+  width: 52px;
+  height: 44px;
+  background: var(--white);
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r-sm);
+  color: var(--charcoal);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.9rem;
+  text-align: center;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -moz-appearance: textfield;
+}
+.matrix-input-grid input::-webkit-outer-spin-button,
+.matrix-input-grid input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.matrix-input-grid input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+}
+
+/* ── Preset row (chip buttons, natural width) ── */
+.preset-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.preset-key {
+  flex: none;
+  height: 34px;
+  padding: 0 14px;
+  background: var(--white);
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--charcoal-3);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.1s ease;
+  font-family: 'Source Sans 3', sans-serif;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.preset-key:hover {
+  background: var(--teal-dim);
+  border-color: rgba(15,118,110,0.25);
+  color: var(--teal);
+}
+.preset-key:active { transform: translateY(2px); box-shadow: 0 1px 0 #B8BDC5; }
+
+/* ── Action keys (balanced proportions) ── */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 0;
+  width: 100%;
+  max-width: 340px;
+}
+.key-compute {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 200px;
+  height: 44px;
+  padding: 0 16px;
+  background: var(--teal);
+  border: none;
+  border-radius: var(--r);
+  color: var(--white);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: var(--shadow-key-teal);
+  transition: all 0.08s ease;
+  white-space: nowrap;
+}
+.key-compute:hover { background: #0d6b63; }
+.key-compute:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #0a5a54, 0 1px 3px rgba(15,118,110,0.2);
+}
+.key-clear {
+  flex: 0 0 auto;
+  width: 88px;
+  height: 44px;
+  padding: 0 12px;
+  background: var(--white);
+  border: 1px solid var(--ash-mid);
+  border-radius: var(--r);
+  color: var(--charcoal-3);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-key);
+  transition: all 0.08s ease;
+}
+.key-clear:hover { background: var(--ash); color: var(--charcoal-2); }
+.key-clear:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #9CA3AF, 0 1px 2px rgba(31,41,55,0.1);
+}
+
+/* ── Result panel ── */
+.result-panel,
+#error-panel {
+  width: 100%;
+  max-width: 380px;
+}
+.result-panel {
+  display: none;
+  margin-top: 18px;
+  animation: slideIn 0.25s ease;
+}
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.result-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--teal-dim);
+  border: 1px solid rgba(15,118,110,0.2);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.result-badge.singular {
+  background: var(--red-dim);
+  border-color: rgba(220,38,38,0.2);
+}
+.rb-val {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--teal);
+  letter-spacing: -0.02em;
+}
+.result-badge.singular .rb-val { color: var(--red-soft); }
+.rb-meta { text-align: right; }
+.rb-meta .rb-label {
+  font-size: 0.68rem;
+  color: var(--charcoal-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+.rb-meta .rb-note {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+.result-badge.singular .rb-meta .rb-note { color: var(--red-soft); }
+
+.steps-panel h3 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--charcoal-3);
+  margin: 0 0 10px;
+}
+.step-item {
+  display: flex;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--ash);
+  font-size: 0.8rem;
+  color: var(--charcoal-2);
+}
+.step-item:last-child { border-bottom: none; }
+.si-idx {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--ash-dark);
+  flex-shrink: 0;
+  padding-top: 1px;
+  min-width: 22px;
+}
+.si-body { flex: 1; line-height: 1.5; }
+.si-body .cof-val {
+  font-family: 'Source Code Pro', monospace;
+  color: var(--teal);
+  font-size: 0.78rem;
+}
+
+.error-box {
+  background: var(--red-dim);
+  border: 1px solid rgba(220,38,38,0.25);
+  color: var(--red-soft);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  margin-top: 12px;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .page-body {
+    grid-template-columns: 1fr;
+  }
+  .content-col {
+    padding: 28px 20px 40px;
+    border-right: none;
+  }
+  .calc-col {
+    position: static;
+    height: auto;
+    min-height: 0;
+    border-top: 1px solid var(--ash);
+    box-shadow: none;
+    padding: 28px 20px 40px;
+  }
+}
+@media (max-width: 480px) {
+  .page-header { padding: 0 20px; }
+  .matrix-input-grid input { width: 44px; height: 40px; font-size: 0.82rem; }
+  .key-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<div id="tip-popup" class="tip-popup below" role="tooltip" hidden>
+  <div class="tip-popup-inner">
+    <span class="tip-label">Quick note</span>
+    <p class="tip-text"></p>
+  </div>
+</div>
+
+<div id="calc-toast" class="calc-toast" role="status" aria-live="polite" hidden>
+  <div class="calc-toast-inner">
+    <span class="tip-label">Tip</span>
+    <p class="calc-toast-text"></p>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header class="page-header">
+  <div class="brand">Numerical Methods · <span>Linear Algebra</span></div>
+  <div class="header-meta">Direct Determinants · Cofactor Expansion</div>
+</header>
+
+<div class="page-body">
+
+  <!-- ═══════════════════════════════════
+       LEFT COLUMN — THEORY + EXAMPLES
+  ════════════════════════════════════ -->
+  <main class="content-col">
+
+    <h1>Direct <em>Determinants</em><br>via Cofactor Expansion</h1>
+    <p style="color:var(--charcoal-3); margin-bottom:28px; font-size:0.88rem;">
+      <span class="term-tip" data-tip="Laplace expansion: rewrite det(A) as a sum of signed cofactors along any chosen row or column." tabindex="0">Laplace's expansion</span> method — computing
+      <span class="term-tip" data-tip="The determinant is one number for a square matrix. det(A)=0 means the matrix is singular (not invertible)." tabindex="0">$\det(A)$</span> for an
+      <span class="term-tip" data-tip="An n×n matrix has n rows and n columns — required for determinants." tabindex="0">$n \times n$ matrix</span>
+      by recursively expanding along a row using signed minors.
+    </p>
+
+    <!-- Section tabs -->
+    <div class="section-tabs" id="section-tabs">
+      <span class="sec-tab-slider" id="sec-tab-slider" aria-hidden="true"></span>
+      <button type="button" class="sec-tab active" data-sec="theory" onclick="showSection('theory')">Theory</button>
+      <button type="button" class="sec-tab" data-sec="examples" onclick="showSection('examples')">Worked Examples</button>
+    </div>
+
+    <!-- ── THEORY ── -->
+    <div class="section-panel active" id="sec-theory">
+
+      <div class="card card-teal">
+        <h2>What is a Determinant?</h2>
+        <p>
+          The <span class="term-tip" data-tip="A single number from a square matrix. It tells you if the matrix is invertible and how much area/volume is scaled." tabindex="0"><strong>determinant</strong></span> of a square matrix $A \in \mathbb{R}^{n \times n}$,
+          written <span class="term-tip" data-tip="det(A) and |A| both mean the determinant of matrix A." tabindex="0">$\det(A)$ or $|A|$</span>, is a scalar that encodes fundamental geometric and
+          algebraic properties of the linear transformation represented by $A$.
+          Geometrically, <span class="term-tip" data-tip="|det(A)| is the scale factor for area (2D) or volume (3D). The sign shows if orientation flips." tabindex="0">$|\det(A)|$</span> equals the <span class="term-tip" data-tip="How much the transformation stretches or shrinks space — the absolute determinant gives this factor." tabindex="0"><strong>volume scaling factor</strong></span>
+          of the transformation; its sign indicates orientation preservation (+) or reversal (−).
+        </p>
+        <p>
+          A matrix is <span class="term-tip" data-tip="Invertible means A⁻¹ exists. Equivalent condition: det(A) ≠ 0." tabindex="0"><strong>invertible</strong></span> (non-singular) if and only if
+          <span class="term-tip" data-tip="If det(A)=0, rows/columns are dependent and the matrix cannot be inverted." tabindex="0">$\det(A) \neq 0$</span>. When $\det(A) = 0$, the system <span class="term-tip" data-tip="For Ax=b: det(A)=0 usually means no unique solution (none or infinitely many)." tabindex="0">$Ax = b$</span> either has
+          no solution or infinitely many.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Minors and Cofactors</h2>
+        <p>Let <span class="term-tip" data-tip="aᵢⱼ is the entry in row i, column j." tabindex="0">$A = [a_{ij}]$</span> be an $n \times n$ matrix.</p>
+        <p>The <span class="term-tip" data-tip="The (i,j)-minor is the determinant after deleting row i and column j from A." tabindex="0"><strong>$(i,j)$-minor</strong></span> <span class="term-tip" data-tip="Mᵢⱼ: remove row i and column j, then compute det of the smaller matrix." tabindex="0">$M_{ij}$</span> is the determinant of the
+          $(n-1)\times(n-1)$ sub-matrix formed by deleting row $i$ and column $j$:</p>
+        <div class="formula-box term-tip" tabindex="0"
+             data-tip="Step: cross out row i and column j, then find det of the remaining (n−1)×(n−1) matrix.">
+          $$M_{ij} = \det\!\bigl(A \text{ with row } i \text{ and column } j \text{ removed}\bigr)$$
+        </div>
+        <p>The <span class="term-tip" data-tip="Cofactor = (sign) × (minor). The sign comes from the (−1)^(i+j) checkerboard." tabindex="0"><strong>$(i,j)$-cofactor</strong></span> attaches the appropriate sign:</p>
+        <div class="formula-box term-tip" tabindex="0"
+             data-tip="Cᵢⱼ = (−1)^(i+j) · Mᵢⱼ. Pluses and minuses alternate like a chessboard.">
+          $$C_{ij} = (-1)^{i+j} \, M_{ij}$$
+        </div>
+        <p>The sign factor <span class="term-tip" data-tip="Alternating signs: + when i+j is even, − when i+j is odd." tabindex="0">$(-1)^{i+j}$</span> follows the <span class="term-tip" data-tip="Visual pattern of + and − signs when expanding by cofactors." tabindex="0">checkerboard pattern</span>:
+          <span class="term-tip" data-tip="Plus and minus alternate like a chessboard across the matrix." tabindex="0">$\begin{pmatrix}+&-&+&\cdots\\-&+&-&\cdots\\+&-&+&\cdots\end{pmatrix}$</span>
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Laplace Expansion Theorem</h2>
+        <p><strong>Theorem (Laplace, 1772):</strong> The determinant of $A$ can be
+          computed by expanding along <em>any</em> row $i$:</p>
+        <div class="formula-box term-tip" tabindex="0"
+             data-tip="Pick any row i: det(A) = sum of (entry) × (cofactor) across that row.">
+          $$\det(A) = \sum_{j=1}^{n} a_{ij}\,C_{ij} = \sum_{j=1}^{n} (-1)^{i+j}\,a_{ij}\,M_{ij}$$
+        </div>
+        <p>Or equivalently along any column $j$:</p>
+        <div class="formula-box term-tip" tabindex="0"
+             data-tip="Same rule for columns: multiply entries in column j by cofactors and add.">
+          $$\det(A) = \sum_{i=1}^{n} a_{ij}\,C_{ij}$$
+        </div>
+        <p>Both give the <em>same result</em>. Prefer the row or column with
+          the <span class="term-tip" data-tip="Rows/columns with zeros give free zero terms — always expand there first." tabindex="0"><strong>most zeros</strong></span> to minimize arithmetic.</p>
+      </div>
+
+      <div class="card">
+        <h2>Base Cases and Recursion</h2>
+        <div class="formula-box term-tip" tabindex="0"
+             data-tip="Stop recursion here: 1×1 → the single entry; 2×2 → ad − bc.">
+          $$\det([a]) = a \qquad (1{\times}1)$$
+          $$\det\!\begin{pmatrix}a&b\\c&d\end{pmatrix} = ad - bc \qquad (2{\times}2)$$
+        </div>
+        <p>
+          For an $n\times n$ matrix, expansion along row 1 produces $n$ cofactors,
+          each requiring the determinant of an $(n{-}1)\times(n{-}1)$ matrix. The total
+          multiplications grow as <span class="term-tip" data-tip="Cofactor expansion is O(n!) — explodes quickly; good only for small n." tabindex="0">$O(n!)$</span>, making this practical for $n \leq 6$ by hand.
+          For larger systems, <span class="term-tip" data-tip="Factor A = LU, then det(A) = product of pivots — standard numerical approach." tabindex="0">LU decomposition</span> at <span class="term-tip" data-tip="O(n³) is far faster than cofactor expansion for large matrices." tabindex="0">$O(n^3)$</span> is preferred.
+        </p>
+        <div class="key-grid">
+          <div class="key-item">
+            <div class="ki-label">Complexity</div>
+            <div class="ki-val">$O(n!)$</div>
+          </div>
+          <div class="key-item">
+            <div class="ki-label">Recursion depth</div>
+            <div class="ki-val">$n-1$ levels</div>
+          </div>
+          <div class="key-item">
+            <div class="ki-label">Base case</div>
+            <div class="ki-val">$1{\times}1$ or $2{\times}2$</div>
+          </div>
+          <div class="key-item">
+            <div class="ki-label">Invertible iff</div>
+            <div class="ki-val">$\det(A)\neq 0$</div>
+          </div>
+          <div class="key-item">
+            <div class="ki-label">Expand along</div>
+            <div class="ki-val">Any row or col</div>
+          </div>
+          <div class="key-item">
+            <div class="ki-label">Practical range</div>
+            <div class="ki-val">$n \leq 6$ by hand</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sec-theory -->
+
+    <!-- ── EXAMPLES ── -->
+    <div class="section-panel" id="sec-examples">
+
+      <div class="example-switcher" id="example-switcher">
+        <span class="ex-slider" id="ex-slider" aria-hidden="true"></span>
+        <button type="button" class="ex-btn active" data-ex="1" onclick="showEx(1)">Example 1 — 3×3</button>
+        <button type="button" class="ex-btn" data-ex="2" onclick="showEx(2)">Example 2 — 4×4</button>
+      </div>
+
+      <!-- EXAMPLE 1 -->
+      <div class="ex-panel active" id="ex1">
+        <div class="card card-teal">
+          <h2>Example 1: 3×3 Matrix</h2>
+          <p>Compute $\det(A)$ where
+            $A = \begin{pmatrix} 2 & -1 & 3 \\ 0 & 4 & -2 \\ 1 & 5 & 6 \end{pmatrix}$
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="step-row">
+            <div class="step-bubble">1</div>
+            <div class="step-body">
+              <p><strong>Write the Laplace expansion along Row 1.</strong></p>
+              <div class="math-block">
+                $$\det(A) = a_{11}C_{11} + a_{12}C_{12} + a_{13}C_{13}$$
+                $$= a_{11}M_{11} - a_{12}M_{12} + a_{13}M_{13}$$
+              </div>
+              <p>where $a_{11}=2,\; a_{12}=-1,\; a_{13}=3$.</p>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">2</div>
+            <div class="step-body">
+              <p><strong>Compute $M_{11}$</strong> — delete row 1, column 1:</p>
+              <div class="math-block">
+                $$M_{11} = \det\!\begin{pmatrix}4 & -2 \\ 5 & 6\end{pmatrix}
+                         = (4)(6) - (-2)(5) = 24 + 10 = 34$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">3</div>
+            <div class="step-body">
+              <p><strong>Compute $M_{12}$</strong> — delete row 1, column 2:</p>
+              <div class="math-block">
+                $$M_{12} = \det\!\begin{pmatrix}0 & -2 \\ 1 & 6\end{pmatrix}
+                         = (0)(6) - (-2)(1) = 0 + 2 = 2$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">4</div>
+            <div class="step-body">
+              <p><strong>Compute $M_{13}$</strong> — delete row 1, column 3:</p>
+              <div class="math-block">
+                $$M_{13} = \det\!\begin{pmatrix}0 & 4 \\ 1 & 5\end{pmatrix}
+                         = (0)(5) - (4)(1) = 0 - 4 = -4$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">5</div>
+            <div class="step-body">
+              <p><strong>Assemble the result.</strong></p>
+              <div class="math-block">
+                $$\det(A) = (2)(34) - (-1)(2) + (3)(-4)$$
+                $$= 68 + 2 - 12 = \mathbf{58}$$
+              </div>
+              <div class="result-pill">det(A) = 58</div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">6</div>
+            <div class="step-body">
+              <p><strong>Interpretation.</strong> Since $\det(A) = 58 \neq 0$, matrix $A$ is
+              <strong>invertible</strong>. The linear system $Ax=b$ has a unique solution for any $b$.</p>
+            </div>
+          </div>
+        </div>
+      </div><!-- /ex1 -->
+
+      <!-- EXAMPLE 2 -->
+      <div class="ex-panel" id="ex2">
+        <div class="card card-teal">
+          <h2>Example 2: 4×4 Matrix</h2>
+          <p>Compute $\det(B)$ where
+            $B = \begin{pmatrix} 1 & 2 & 0 & -1 \\ 3 & -1 & 2 & 0 \\ 0 & 1 & 4 & 2 \\ -2 & 0 & 1 & 3 \end{pmatrix}$
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="step-row">
+            <div class="step-bubble">1</div>
+            <div class="step-body">
+              <p><strong>Expand along Row 1.</strong> Since $b_{13}=0$, that term vanishes.</p>
+              <div class="math-block">
+                $$\det(B) = b_{11}C_{11} + b_{12}C_{12} + \underbrace{b_{13}C_{13}}_{=\,0} + b_{14}C_{14}$$
+                $$C_{14} = (-1)^{1+4}M_{14} = -M_{14}, \quad b_{14}C_{14} = (-1)(-M_{14}) = +M_{14}$$
+                $$\therefore\; \det(B) = M_{11} - 2M_{12} + M_{14}$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">2</div>
+            <div class="step-body">
+              <p><strong>Compute $M_{11}$</strong> — delete row 1, col 1:</p>
+              <div class="math-block">
+                $$M_{11} = \det\!\begin{pmatrix}-1&2&0\\1&4&2\\0&1&3\end{pmatrix}$$
+                $$= (-1)(12-2) - (2)(3-0) + 0 = -10 - 6 = -16$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">3</div>
+            <div class="step-body">
+              <p><strong>Compute $M_{12}$</strong> — delete row 1, col 2:</p>
+              <div class="math-block">
+                $$M_{12} = \det\!\begin{pmatrix}3&2&0\\0&4&2\\-2&1&3\end{pmatrix}$$
+                $$= (3)(12-2) - (2)(0+4) + 0 = 30 - 8 = 22$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">4</div>
+            <div class="step-body">
+              <p><strong>Compute $M_{14}$</strong> — delete row 1, col 4:</p>
+              <div class="math-block">
+                $$M_{14} = \det\!\begin{pmatrix}3&-1&2\\0&1&4\\-2&0&1\end{pmatrix}$$
+                $$= (3)(1-0) + (1)(0+8) + (2)(0+2) = 3 + 8 + 4 = 15$$
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">5</div>
+            <div class="step-body">
+              <p><strong>Assemble the result.</strong></p>
+              <div class="math-block">
+                $$\det(B) = (-16) - 2(22) + (15) = -16 - 44 + 15 = \mathbf{-45}$$
+              </div>
+              <div class="result-pill">det(B) = −45</div>
+            </div>
+          </div>
+
+          <div class="step-row">
+            <div class="step-bubble">6</div>
+            <div class="step-body">
+              <p><strong>Interpretation.</strong> $\det(B) = -45 \neq 0$, so $B$ is
+              <strong>invertible</strong>. The negative sign indicates the transformation
+              reverses orientation in $\mathbb{R}^4$.</p>
+            </div>
+          </div>
+        </div>
+      </div><!-- /ex2 -->
+
+    </div><!-- /sec-examples -->
+
+  </main>
+
+  <!-- ═══════════════════════════════════
+       RIGHT COLUMN — CALCULATOR
+  ════════════════════════════════════ -->
+  <aside class="calc-col">
+    <div class="calc-col-bg" aria-hidden="true">
+      <div class="calc-bg-glow"></div>
+      <div class="calc-bg-diagonal"></div>
+      <div class="calc-bg-grid calc-bg-grid--major"></div>
+      <div class="calc-bg-grid calc-bg-grid--fine"></div>
+      <div class="calc-bg-dots"></div>
+      <div class="calc-col-matrix-deco calc-col-matrix-deco--tl"></div>
+      <div class="calc-col-matrix-deco calc-col-matrix-deco--br"></div>
+      <div class="calc-bg-watermark">det(A)</div>
+    </div>
+    <div class="calc-col-inner">
+
+    <div class="calc-guide-wrap">
+      <button type="button" class="calc-guide-btn" id="calc-guide-toggle"
+              aria-expanded="false" aria-controls="calc-guide-panel">
+        <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
+        <span>Quick guide</span>
+      </button>
+      <div class="calc-guide-panel" id="calc-guide-panel" hidden>
+        <span class="tip-label">How to use</span>
+        <ul class="calc-guide-list">
+          <li>Click a cell and type a value, or <strong>scroll the mouse wheel</strong> over a cell to nudge it up/down.</li>
+          <li>Press <strong>Enter</strong> in any cell to run the computation.</li>
+          <li>Pick <strong>n</strong> with 2–5, or the <strong>gear</strong> for a custom size (1–6).</li>
+          <li>Use <strong>Ex. 1 / Ex. 2</strong> presets to load sample matrices.</li>
+          <li><strong>Compute det(A)</strong> expands along row 1; <strong>Clear</strong> resets to the identity matrix.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="calc-header">
+      <span class="calc-header-badge">Interactive · Row 1 expansion</span>
+      <h2>Determinant Calculator</h2>
+      <p>Cofactor expansion along Row 1 · sizes 1–6 (custom via <i class="fa-solid fa-gear" aria-hidden="true"></i>)</p>
+    </div>
+
+    <div class="sci-cal">
+
+      <!-- Display -->
+      <div class="cal-display">
+        <div class="display-label">det ( A ) =</div>
+        <div class="display-value" id="disp-val">—</div>
+        <div class="display-status" id="disp-status">Enter matrix and press Compute</div>
+      </div>
+
+      <!-- Size selector -->
+      <div class="size-row">
+        <span class="size-label">n =</span>
+        <button type="button" class="size-key" data-n="2" onclick="setSize(2)">2</button>
+        <button type="button" class="size-key active" data-n="3" onclick="setSize(3)">3</button>
+        <button type="button" class="size-key" data-n="4" onclick="setSize(4)">4</button>
+        <button type="button" class="size-key" data-n="5" onclick="setSize(5)">5</button>
+        <div class="size-custom-wrap">
+          <button type="button" class="size-key size-key-custom" id="btn-custom-size"
+                  onclick="toggleCustomSize(event)" aria-expanded="false"
+                  aria-controls="custom-size-popover" title="Custom matrix size (1–6)">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+          </button>
+          <div class="custom-size-popover" id="custom-size-popover" role="dialog" aria-label="Custom matrix size">
+            <label for="custom-n-input">Matrix dimension n</label>
+            <input type="number" id="custom-n-input" inputmode="numeric" min="1" max="6" step="1"
+                   placeholder="e.g. 6" aria-describedby="custom-size-hint custom-size-err"/>
+            <p class="custom-size-hint" id="custom-size-hint">Integer from 1 to 6 (cofactor expansion limit).</p>
+            <p class="custom-size-err" id="custom-size-err" role="alert"></p>
+            <button type="button" class="custom-size-apply" onclick="applyCustomSize()">Apply size</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matrix input with bracket styling -->
+      <div class="matrix-wrap" id="matrix-wrap">
+        <!-- Built by JS -->
+      </div>
+
+      <!-- Presets -->
+      <div class="preset-row">
+        <button class="preset-key" onclick="loadPreset([[2,-1,3],[0,4,-2],[1,5,6]])">Ex. 1</button>
+        <button class="preset-key" onclick="loadPreset([[1,2,0,-1],[3,-1,2,0],[0,1,4,2],[-2,0,1,3]])">Ex. 2</button>
+        <button class="preset-key" onclick="loadPreset([[1,0,0],[0,1,0],[0,0,1]])">I₃</button>
+        <button class="preset-key" onclick="loadPreset([[1,2],[3,4]])">2×2</button>
+      </div>
+
+      <!-- Action keys -->
+      <div class="action-row">
+        <button class="key-compute" onclick="calculate()">Compute det(A)</button>
+        <button class="key-clear"   onclick="clearMatrix()">Clear</button>
+      </div>
+
+    </div><!-- /sci-cal -->
+
+    <!-- Result + steps -->
+    <div class="result-panel" id="result-panel">
+      <div class="result-badge" id="result-badge">
+        <div class="rb-val" id="rb-val">—</div>
+        <div class="rb-meta">
+          <div class="rb-label">Determinant</div>
+          <div class="rb-note" id="rb-note"></div>
+        </div>
+      </div>
+      <div class="steps-panel">
+        <h3>Expansion steps</h3>
+        <div id="steps-list"></div>
+      </div>
+    </div>
+
+    <div id="error-panel"></div>
+
+    </div><!-- /calc-col-inner -->
+  </aside>
+
+</div><!-- /page-body -->
+
+<script>
+/* 
+ SECTION / EXAMPLE NAVIGATION
+*/
+function moveSecSlider(btn) {
+  const slider = document.getElementById('sec-tab-slider');
+  if (!slider || !btn) return;
+  slider.style.left = `${btn.offsetLeft}px`;
+  slider.style.width = `${btn.offsetWidth}px`;
+}
+
+function moveExSlider(btn) {
+  const slider = document.getElementById('ex-slider');
+  if (!slider || !btn) return;
+  slider.style.left = `${btn.offsetLeft}px`;
+  slider.style.width = `${btn.offsetWidth}px`;
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sec-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  const tab = document.querySelector(`.sec-tab[data-sec="${id}"]`);
+  if (tab) {
+    tab.classList.add('active');
+    moveSecSlider(tab);
+  }
+  const panel = document.getElementById('sec-' + id);
+  const done = window.MathJax
+    ? MathJax.typesetPromise([panel]).catch(() => {})
+    : Promise.resolve();
+  done.then(() => {
+    bindBiteTips(panel);
+    prepareFormulaTips();
+  });
+}
+
+function showEx(n) {
+  document.querySelectorAll('.ex-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ex-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ex' + n).classList.add('active');
+  const btn = document.querySelector(`.ex-btn[data-ex="${n}"]`);
+  if (btn) {
+    btn.classList.add('active');
+    moveExSlider(btn);
+  }
+  const panel = document.getElementById('ex' + n);
+  const done = window.MathJax
+    ? MathJax.typesetPromise([panel]).catch(() => {})
+    : Promise.resolve();
+  done.then(() => {
+    bindBiteTips(panel);
+    prepareFormulaTips();
+  });
+}
+
+/* 
+ MATRIX BUILDER
+ */
+const MIN_MATRIX_N = 1;
+const MAX_MATRIX_N = 6;
+let currentSize = 3;
+
+function matrixCellPx(n) {
+  const sci = document.querySelector('.sci-cal');
+  const col = document.querySelector('.calc-col');
+  const gap = 5;
+  const pad = 56;
+  const colW = Math.max(220, (sci?.clientWidth || col?.clientWidth || 360) - pad);
+  const maxMatrix = Math.min(colW, 380);
+  const cell = Math.floor((maxMatrix - gap * (n - 1)) / n);
+  return Math.max(40, Math.min(64, cell));
+}
+
+function validateMatrixN(raw) {
+  if (raw === '' || raw === null || raw === undefined) {
+    return { ok: false, error: 'Enter a matrix size.' };
+  }
+  const num = Number(raw);
+  if (!Number.isFinite(num)) {
+    return { ok: false, error: 'Size must be a number.' };
+  }
+  if (!Number.isInteger(num)) {
+    return { ok: false, error: 'Size must be a whole number (no decimals).' };
+  }
+  if (num < MIN_MATRIX_N) {
+    return { ok: false, error: `Minimum size is ${MIN_MATRIX_N}×${MIN_MATRIX_N}.` };
+  }
+  if (num > MAX_MATRIX_N) {
+    return { ok: false, error: `Maximum size is ${MAX_MATRIX_N}×${MAX_MATRIX_N} (expansion limit).` };
+  }
+  return { ok: true, n: num };
+}
+
+function updateSizeButtons(n) {
+  document.querySelectorAll('.size-key[data-n]').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.n, 10) === n);
+  });
+  const customBtn = document.getElementById('btn-custom-size');
+  const isPreset = n >= 2 && n <= 5;
+  if (customBtn) customBtn.classList.toggle('active', !isPreset);
+}
+
+function closeCustomSizePopover() {
+  const pop = document.getElementById('custom-size-popover');
+  const btn = document.getElementById('btn-custom-size');
+  if (pop) pop.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleCustomSize(ev) {
+  ev.stopPropagation();
+  const pop = document.getElementById('custom-size-popover');
+  const btn = document.getElementById('btn-custom-size');
+  const input = document.getElementById('custom-n-input');
+  const err = document.getElementById('custom-size-err');
+  const open = pop.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) {
+    input.value = currentSize;
+    input.classList.remove('invalid');
+    if (err) err.textContent = '';
+    input.focus();
+    input.select();
+    showCalcToast('Enter n from 1 to 6, then press Apply size.', btn, 2600, 'custom-size');
+  }
+}
+
+function applyCustomSize() {
+  const input = document.getElementById('custom-n-input');
+  const errEl = document.getElementById('custom-size-err');
+  const result = validateMatrixN(input.value.trim());
+  if (!result.ok) {
+    input.classList.add('invalid');
+    errEl.textContent = result.error;
+    document.getElementById('disp-status').textContent = result.error;
+    return;
+  }
+  input.classList.remove('invalid');
+  errEl.textContent = '';
+  closeCustomSizePopover();
+  setSize(result.n);
+}
+
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.size-custom-wrap');
+  if (wrap && !wrap.contains(e.target)) closeCustomSizePopover();
+});
+
+document.getElementById('custom-n-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); applyCustomSize(); }
+  if (e.key === 'Escape') closeCustomSizePopover();
+});
+
+function buildGrid(n) {
+  const size = validateMatrixN(n);
+  if (!size.ok) return;
+  n = size.n;
+
+  const wrap = document.getElementById('matrix-wrap');
+  if (!wrap) return;
+  const cellPx = matrixCellPx(n);
+  currentSize = n;
+
+  const fence = document.createElement('div');
+  fence.className = 'matrix-fence';
+
+  const lb = document.createElement('div');
+  lb.className = 'matrix-bracket left';
+
+  const rb = document.createElement('div');
+  rb.className = 'matrix-bracket right';
+
+  const grid = document.createElement('div');
+  grid.className = 'matrix-input-grid';
+  grid.style.gridTemplateColumns = `repeat(${n}, ${cellPx}px)`;
+  grid.style.gap = '5px';
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.step = 'any';
+      inp.value = (i === j) ? '1' : '0';
+      inp.id = `m${i}${j}`;
+      inp.style.width = cellPx + 'px';
+      inp.style.height = Math.max(40, cellPx - 4) + 'px';
+      inp.setAttribute('aria-label', `Row ${i+1} Col ${j+1}`);
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+      inp.addEventListener('wheel', onMatrixWheel, { passive: false });
+      inp.addEventListener('focus', onMatrixFocus);
+      grid.appendChild(inp);
+    }
+  }
+
+  fence.appendChild(lb);
+  fence.appendChild(grid);
+  fence.appendChild(rb);
+
+  wrap.innerHTML = '';
+  wrap.appendChild(fence);
+
+  document.getElementById('result-panel').style.display = 'none';
+  document.getElementById('error-panel').innerHTML = '';
+  document.getElementById('disp-val').textContent = '—';
+  document.getElementById('disp-val').className = 'display-value';
+  document.getElementById('disp-status').textContent = 'Enter matrix and press Compute';
+}
+
+function setSize(n) {
+  const result = validateMatrixN(n);
+  if (!result.ok) {
+    document.getElementById('error-panel').innerHTML =
+      `<div class="error-box">⚠ ${result.error}</div>`;
+    return;
+  }
+  closeCustomSizePopover();
+  updateSizeButtons(result.n);
+  buildGrid(result.n);
+}
+
+function getMatrix() {
+  const mat = [];
+  for (let i = 0; i < currentSize; i++) {
+    const row = [];
+    for (let j = 0; j < currentSize; j++) {
+      const v = parseFloat(document.getElementById(`m${i}${j}`).value);
+      row.push(isNaN(v) ? 0 : v);
+    }
+    mat.push(row);
+  }
+  return mat;
+}
+
+function clearMatrix() {
+  for (let i = 0; i < currentSize; i++)
+    for (let j = 0; j < currentSize; j++) {
+      const el = document.getElementById(`m${i}${j}`);
+      if (el) el.value = (i === j) ? '1' : '0';
+    }
+  document.getElementById('result-panel').style.display = 'none';
+  document.getElementById('error-panel').innerHTML = '';
+  document.getElementById('disp-val').textContent = '—';
+  document.getElementById('disp-val').className = 'display-value';
+  document.getElementById('disp-status').textContent = 'Enter matrix and press Compute';
+}
+
+function loadPreset(mat) {
+  setSize(mat.length);
+  setTimeout(() => {
+    mat.forEach((row, i) => row.forEach((v, j) => {
+      const el = document.getElementById(`m${i}${j}`);
+      if (el) el.value = v;
+    }));
+  }, 30);
+}
+
+/* 
+   API + RENDER
+ */
+function fmt(v) {
+  return Number.isInteger(v) ? v : parseFloat(v.toFixed(6));
+}
+
+async function calculate() {
+  const sizeCheck = validateMatrixN(currentSize);
+  if (!sizeCheck.ok) {
+    document.getElementById('error-panel').innerHTML =
+      `<div class="error-box">⚠ ${sizeCheck.error}</div>`;
+    return;
+  }
+  const matrix = getMatrix();
+  document.getElementById('result-panel').style.display = 'none';
+  document.getElementById('error-panel').innerHTML = '';
+  document.getElementById('disp-val').textContent = '…';
+  document.getElementById('disp-status').textContent = 'Computing…';
+
+  try {
+    const resp = await fetch('/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matrix })
+    });
+    const data = await resp.json();
+    if (data.error) {
+      document.getElementById('error-panel').innerHTML =
+        `<div class="error-box">⚠ ${data.error}</div>`;
+      document.getElementById('disp-val').textContent = 'ERR';
+      document.getElementById('disp-status').textContent = data.error;
+      return;
+    }
+    renderResult(data);
+  } catch (e) {
+    document.getElementById('error-panel').innerHTML =
+      `<div class="error-box">⚠ Network error: ${e.message}</div>`;
+    document.getElementById('disp-val').textContent = 'ERR';
+    document.getElementById('disp-status').textContent = 'Flask server not running?';
+  }
+}
+
+function renderResult({ steps, determinant }) {
+  const d = fmt(determinant);
+  const isSingular = determinant === 0;
+
+  const dispVal = document.getElementById('disp-val');
+  dispVal.textContent = d;
+  dispVal.className = 'display-value ' + (isSingular ? 'is-red' : 'is-teal');
+  document.getElementById('disp-status').textContent =
+    isSingular ? 'Singular — no unique inverse' : 'Invertible — unique solution exists';
+
+  const badge = document.getElementById('result-badge');
+  badge.className = 'result-badge' + (isSingular ? ' singular' : '');
+  document.getElementById('rb-val').textContent = d;
+  document.getElementById('rb-note').textContent = isSingular ? 'Singular' : 'Invertible';
+
+  const list = document.getElementById('steps-list');
+  list.innerHTML = '';
+
+  if (steps.length === 1 && steps[0].desc) {
+    const div = document.createElement('div');
+    div.className = 'step-item';
+    div.innerHTML = `<span class="si-idx">01</span><span class="si-body">${steps[0].desc}</span>`;
+    list.appendChild(div);
+  } else {
+    steps.forEach((s, idx) => {
+      const div = document.createElement('div');
+      div.className = 'step-item';
+      const signStr = s.sign || '+';
+      const elem = fmt(s.element);
+      const mdet = fmt(s.minor_det);
+      const cof  = fmt(s.cofactor);
+      div.innerHTML = `
+        <span class="si-idx">C${1}${s.col}</span>
+        <span class="si-body">
+          ${signStr}1 · (${elem}) · M<sub>1${s.col}</sub>=${mdet}
+          → <span class="cof-val">${cof}</span>
+        </span>`;
+      list.appendChild(div);
+    });
+
+    const sum = document.createElement('div');
+    sum.className = 'step-item';
+    const parts = steps.map(s => fmt(s.cofactor));
+    sum.innerHTML = `
+      <span class="si-idx">∑</span>
+      <span class="si-body">
+        ${parts.join(' + ').replace(/\+ -/g, '− ')}
+        = <span class="cof-val">${d}</span>
+      </span>`;
+    list.appendChild(sum);
+  }
+
+  document.getElementById('result-panel').style.display = 'block';
+  if (window.MathJax) MathJax.typesetPromise([document.getElementById('result-panel')]).catch(()=>{});
+}
+
+buildGrid(3);
+updateSizeButtons(3);
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const saved = document.getElementById('m00') ? getMatrix() : null;
+    buildGrid(currentSize);
+    if (saved) {
+      saved.forEach((row, i) => row.forEach((v, j) => {
+        const el = document.getElementById(`m${i}${j}`);
+        if (el) el.value = v;
+      }));
+    }
+  }, 120);
+});
+
+/* 
+CALCULATOR TOAST + QUICK GUIDE
+ */
+const calcToast = document.getElementById('calc-toast');
+const calcToastText = calcToast?.querySelector('.calc-toast-text');
+let calcToastHideTimer = null;
+const calcToastCooldown = {};
+let matrixFocusedOnce = false;
+
+function showCalcToast(message, anchorEl, duration = 2600, cooldownKey = 'default') {
+  if (!calcToast || !calcToastText || !anchorEl) return;
+  const now = Date.now();
+  if (calcToastCooldown[cooldownKey] && now - calcToastCooldown[cooldownKey] < 3500) return;
+  calcToastCooldown[cooldownKey] = now;
+
+  clearTimeout(calcToastHideTimer);
+  calcToastText.textContent = message;
+  calcToast.hidden = false;
+  calcToast.classList.remove('is-visible');
+  calcToast.style.visibility = 'hidden';
+  void calcToast.offsetWidth;
+
+  requestAnimationFrame(() => {
+    const rect = anchorEl.getBoundingClientRect();
+    const toastRect = calcToast.getBoundingClientRect();
+    const gap = 8;
+    const pad = 10;
+    let top = rect.bottom + gap;
+    let left = rect.left;
+
+    if (top + toastRect.height > window.innerHeight - pad) {
+      top = rect.top - gap - toastRect.height;
+    }
+    left = Math.max(pad, Math.min(left, window.innerWidth - toastRect.width - pad));
+
+    calcToast.style.top = `${top}px`;
+    calcToast.style.left = `${left}px`;
+    calcToast.style.visibility = '';
+    requestAnimationFrame(() => calcToast.classList.add('is-visible'));
+  });
+
+  calcToastHideTimer = setTimeout(() => {
+    calcToast.classList.remove('is-visible');
+    setTimeout(() => {
+      if (!calcToast.classList.contains('is-visible')) calcToast.hidden = true;
+    }, 220);
+  }, duration);
+}
+
+function onMatrixWheel(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const inp = e.currentTarget;
+  const step = e.deltaY < 0 ? 1 : -1;
+  const cur = parseFloat(inp.value);
+  const next = (Number.isFinite(cur) ? cur : 0) + step;
+  inp.value = Number.isInteger(next) ? next : parseFloat(next.toFixed(6));
+  showCalcToast(
+    'Scroll over a cell to nudge its value up or down (won’t scroll the page).',
+    inp,
+    2400,
+    'wheel'
+  );
+}
+
+function onMatrixFocus(e) {
+  if (matrixFocusedOnce) return;
+  matrixFocusedOnce = true;
+  showCalcToast(
+    'Tip: type values directly, or scroll the mouse wheel while hovering a cell.',
+    e.currentTarget,
+    2800,
+    'focus'
+  );
+}
+
+(function initCalcGuide() {
+  const toggle = document.getElementById('calc-guide-toggle');
+  const panel = document.getElementById('calc-guide-panel');
+  if (!toggle || !panel) return;
+
+  function closeGuide() {
+    panel.classList.remove('open');
+    panel.setAttribute('hidden', '');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  function openGuide() {
+    panel.removeAttribute('hidden');
+    panel.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  toggle.addEventListener('click', e => {
+    e.stopPropagation();
+    if (panel.classList.contains('open')) closeGuide();
+    else openGuide();
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.calc-guide-wrap')) closeGuide();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeGuide();
+  });
+})();
+
+document.querySelector('.sci-cal')?.addEventListener('wheel', e => {
+  if (e.target.closest('input[type="number"]')) {
+    e.stopPropagation();
+  }
+}, { capture: true });
+
+/*
+  BITE-SIZE HOVER TIPS
+ */
+const tipPopup = document.getElementById('tip-popup');
+const tipTextEl = tipPopup?.querySelector('.tip-text');
+let tipActiveEl = null;
+let tipHideTimer = null;
+
+function prepareFormulaTips(root = document) {
+  root.querySelectorAll('.term-tip').forEach(el => {
+    el.querySelectorAll('mjx-container, mjx-assistive-mml').forEach(node => {
+      node.style.pointerEvents = 'none';
+    });
+  });
+}
+
+function bindBiteTips(root = document.querySelector('.content-col')) {
+  if (!root) return;
+  root.querySelectorAll('.term-tip').forEach(el => {
+    if (el._tipBound || !el.dataset.tip) return;
+    el._tipBound = true;
+    el.addEventListener('pointerenter', () => showBiteTip(el));
+    el.addEventListener('pointerleave', e => {
+      if (!el.contains(e.relatedTarget)) hideBiteTip();
+    });
+    el.addEventListener('focusin', () => showBiteTip(el));
+    el.addEventListener('focusout', e => {
+      if (!el.contains(e.relatedTarget)) hideBiteTip();
+    });
+  });
+}
+
+function positionBiteTip(el, animateIn) {
+  if (!tipPopup || !tipTextEl) return;
+  const tip = el.dataset.tip;
+  if (!tip) return;
+
+  tipTextEl.textContent = tip;
+  const alreadyVisible = tipPopup.classList.contains('is-visible');
+  tipPopup.hidden = false;
+
+  if (!animateIn && alreadyVisible) {
+    tipPopup.classList.add('is-repositioning');
+  } else {
+    tipPopup.classList.remove('is-visible', 'is-repositioning');
+    tipPopup.style.visibility = 'hidden';
+    tipPopup.style.left = '0px';
+    tipPopup.style.top = '0px';
+    void tipPopup.offsetWidth;
+  }
+
+  requestAnimationFrame(() => {
+    const rect = el.getBoundingClientRect();
+    const popRect = tipPopup.getBoundingClientRect();
+    const gap = 10;
+    const pad = 12;
+    let top;
+    let placeBelow = true;
+
+    if (rect.bottom + gap + popRect.height > window.innerHeight - pad &&
+        rect.top - gap - popRect.height > pad) {
+      placeBelow = false;
+    }
+
+    if (placeBelow) {
+      top = rect.bottom + gap;
+      tipPopup.classList.remove('above');
+      tipPopup.classList.add('below');
+    } else {
+      top = rect.top - gap - popRect.height;
+      tipPopup.classList.remove('below');
+      tipPopup.classList.add('above');
+    }
+
+    let left = rect.left + rect.width / 2 - popRect.width / 2;
+    left = Math.max(pad, Math.min(left, window.innerWidth - popRect.width - pad));
+
+    tipPopup.style.setProperty('--tip-arrow-x', `${rect.left + rect.width / 2 - left}px`);
+    tipPopup.style.left = `${left}px`;
+    tipPopup.style.top = `${top}px`;
+    tipPopup.style.visibility = '';
+
+    if (animateIn || !alreadyVisible) {
+      requestAnimationFrame(() => tipPopup.classList.add('is-visible'));
+    }
+    tipPopup.classList.remove('is-repositioning');
+  });
+}
+
+function showBiteTip(el) {
+  clearTimeout(tipHideTimer);
+  const same = tipActiveEl === el;
+  tipActiveEl = el;
+  positionBiteTip(el, !same || !tipPopup.classList.contains('is-visible'));
+}
+
+function hideBiteTip() {
+  tipHideTimer = setTimeout(() => {
+    tipPopup?.classList.remove('is-visible');
+    setTimeout(() => {
+      if (tipPopup && !tipPopup.classList.contains('is-visible')) {
+        tipPopup.hidden = true;
+        tipActiveEl = null;
+      }
+    }, 220);
+  }, 160);
+}
+
+window.addEventListener('scroll', () => {
+  if (tipActiveEl && tipPopup?.classList.contains('is-visible')) {
+    positionBiteTip(tipActiveEl, false);
+  }
+}, true);
+
+window.addEventListener('resize', () => {
+  if (tipActiveEl && tipPopup?.classList.contains('is-visible')) {
+    positionBiteTip(tipActiveEl, false);
+  }
+});
+
+window.addEventListener('load', () => {
+  const typeset = window.MathJax
+    ? MathJax.typesetPromise().catch(() => {})
+    : Promise.resolve();
+  typeset.then(() => {
+    prepareFormulaTips();
+    bindBiteTips();
+    requestAnimationFrame(() => {
+      const secTab = document.querySelector('.sec-tab.active');
+      const exBtn = document.querySelector('.ex-btn.active');
+      if (secTab) moveSecSlider(secTab);
+      if (exBtn) moveExSlider(exBtn);
+    });
+  });
+});
+</script>
+</body>
+</html>
