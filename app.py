@@ -45,7 +45,6 @@ def determinant_steps(matrix):
         })
         return steps, val
 
-    # Laplace expansion along row 1
     cofactor_vals = []
     for col in range(n):
         sign = (-1) ** col
@@ -83,7 +82,6 @@ def calculate():
         for row in matrix:
             if len(row) != n:
                 return jsonify({"error": "Matrix must be square."}), 400
-        # Convert to float
         matrix = [[float(x) for x in row] for row in matrix]
         steps, det = determinant_steps(matrix)
         return jsonify({"steps": steps, "determinant": det})
