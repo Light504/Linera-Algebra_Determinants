@@ -5,14 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Direct Determinants — Cofactor Expansion</title>
 
-  <!-- Latin Modern Sans via GUST e-foundry CDN -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;500&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
 
-  <!-- Font Awesome (gears icon) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
-  <!-- MathJax -->
   <script>
     window.MathJax = {
       tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']] },
@@ -23,9 +20,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 
 <style>
-/* ═══════════════════════════════════════════
-   DESIGN TOKENS — Scandinavian Minimalist
-═══════════════════════════════════════════ */
+
 :root {
   --chalk:      #F5F7FA;
   --white:      #FFFFFF;
@@ -64,9 +59,6 @@ body {
   min-height: 100vh;
 }
 
-/* ═══════════════════════════════════════════
-   PAGE SHELL
-═══════════════════════════════════════════ */
 .page-header {
   background: var(--white);
   border-bottom: 1px solid var(--ash);
@@ -93,9 +85,6 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* ═══════════════════════════════════════════
-   TWO-COLUMN LAYOUT — full viewport width
-═══════════════════════════════════════════ */
 .page-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -103,7 +92,6 @@ body {
   min-height: calc(100vh - 56px);
 }
 
-/* LEFT — theory uses its half of the screen */
 .content-col {
   min-width: 0;
   padding: 40px clamp(20px, 3vw, 48px) 80px clamp(16px, 2.5vw, 40px);
@@ -112,7 +100,6 @@ body {
   overscroll-behavior: contain;
 }
 
-/* RIGHT — calculator column with layered background */
 .calc-col {
   min-width: 0;
   background: linear-gradient(180deg, var(--chalk) 0%, var(--white) 22%, var(--white) 100%);
@@ -243,7 +230,6 @@ body {
   flex: 1;
 }
 
-/* ── Calculator quick guide (top-left) ── */
 .calc-guide-wrap {
   position: absolute;
   top: 0;
@@ -332,7 +318,6 @@ body {
   font-weight: 700;
 }
 
-/* ── Contextual calculator toast (short-lived) ── */
 .calc-toast {
   position: fixed;
   z-index: 1100;
@@ -374,16 +359,12 @@ body {
   color: var(--charcoal-2);
 }
 
-/* Wider screens: give calculator a bit more room for large matrices */
 @media (min-width: 1100px) {
   .page-body {
     grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
   }
 }
 
-/* ═══════════════════════════════════════════
-   SECTION NAVIGATION (left col)
-═══════════════════════════════════════════ */
 .section-tabs {
   position: relative;
   display: flex;
@@ -427,9 +408,6 @@ body {
 .section-panel { display: none; }
 .section-panel.active { display: block; }
 
-/* ═══════════════════════════════════════════
-   TYPOGRAPHY
-═══════════════════════════════════════════ */
 h1 {
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 1.9rem;
@@ -461,9 +439,6 @@ p { color: var(--charcoal-2); margin-bottom: 12px; font-size: 0.93rem; }
 p:last-child { margin-bottom: 0; }
 strong { color: var(--charcoal); font-weight: 600; }
 
-/* ═══════════════════════════════════════════
-   CONTENT CARDS
-═══════════════════════════════════════════ */
 .card {
   background: var(--white);
   border: 1px solid var(--ash);
@@ -499,7 +474,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   border-bottom-left-radius: var(--r-lg);
 }
 
-/* ── Bite-size hover tips (terms & equations) ── */
 .term-tip {
   position: relative;
   cursor: help;
@@ -522,7 +496,7 @@ strong { color: var(--charcoal); font-weight: 600; }
   background: var(--teal-dim);
   box-shadow: inset 0 -2px 0 var(--teal-light);
 }
-/* Stop MathJax internals from stealing hover (fixes tooltip jitter) */
+
 .formula-box.term-tip mjx-container,
 .formula-box.term-tip mjx-assistive-mml {
   pointer-events: none !important;
@@ -629,9 +603,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   color: var(--charcoal);
 }
 
-/* ═══════════════════════════════════════════
-   WORKED STEPS
-═══════════════════════════════════════════ */
 .example-switcher {
   position: relative;
   display: inline-flex;
@@ -676,7 +647,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   color: var(--charcoal-2);
 }
 
-/* Example panels: sharp top-left & bottom-right */
 #sec-examples .ex-panel .card {
   border-top-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -733,9 +703,6 @@ strong { color: var(--charcoal); font-weight: 600; }
 }
 .result-pill::before { content: '∴'; font-size: 1rem; }
 
-/* ═══════════════════════════════════════════
-   SCIENTIFIC CALCULATOR — RIGHT COLUMN
-═══════════════════════════════════════════ */
 .calc-header {
   margin-bottom: 20px;
   width: 100%;
@@ -771,7 +738,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   margin: 0;
 }
 
-/* ── Sci-cal body (compact pad, not full-bleed buttons) ── */
 .sci-cal {
   background: var(--chalk);
   border: 1px solid var(--ash-mid);
@@ -795,7 +761,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   width: 100%;
 }
 
-/* ── Display screen ── */
 .cal-display {
   background: #ECEFF4;
   border: 1px solid var(--ash-mid);
@@ -840,7 +805,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   margin-top: 4px;
 }
 
-/* ── Size row (square keys, centered) ── */
 .size-row {
   display: flex;
   align-items: center;
@@ -984,7 +948,6 @@ strong { color: var(--charcoal); font-weight: 600; }
 }
 .custom-size-apply:hover { background: #0d6b63; }
 
-/* ── Matrix grid ── */
 .matrix-wrap {
   flex: none;
   display: flex;
@@ -1038,7 +1001,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
 }
 
-/* ── Preset row (chip buttons, natural width) ── */
 .preset-row {
   display: flex;
   justify-content: center;
@@ -1070,7 +1032,6 @@ strong { color: var(--charcoal); font-weight: 600; }
 }
 .preset-key:active { transform: translateY(2px); box-shadow: 0 1px 0 #B8BDC5; }
 
-/* ── Action keys (balanced proportions) ── */
 .action-row {
   display: flex;
   justify-content: center;
@@ -1125,7 +1086,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   box-shadow: 0 0 0 #9CA3AF, 0 1px 2px rgba(31,41,55,0.1);
 }
 
-/* ── Result panel ── */
 .result-panel,
 #error-panel {
   width: 100%;
@@ -1218,9 +1178,6 @@ strong { color: var(--charcoal); font-weight: 600; }
   margin-top: 12px;
 }
 
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════ */
 @media (max-width: 900px) {
   .page-body {
     grid-template-columns: 1fr;
@@ -1269,9 +1226,6 @@ strong { color: var(--charcoal); font-weight: 600; }
 
 <div class="page-body">
 
-  <!-- ═══════════════════════════════════
-       LEFT COLUMN — THEORY + EXAMPLES
-  ════════════════════════════════════ -->
   <main class="content-col">
 
     <h1>Direct <em>Determinants</em><br>via Cofactor Expansion</h1>
@@ -1385,9 +1339,8 @@ strong { color: var(--charcoal); font-weight: 600; }
         </div>
       </div>
 
-    </div><!-- /sec-theory -->
+    </div>
 
-    <!-- ── EXAMPLES ── -->
     <div class="section-panel" id="sec-examples">
 
       <div class="example-switcher" id="example-switcher">
@@ -1396,7 +1349,6 @@ strong { color: var(--charcoal); font-weight: 600; }
         <button type="button" class="ex-btn" data-ex="2" onclick="showEx(2)">Example 2 — 4×4</button>
       </div>
 
-      <!-- EXAMPLE 1 -->
       <div class="ex-panel active" id="ex1">
         <div class="card card-teal">
           <h2>Example 1: 3×3 Matrix</h2>
@@ -1471,9 +1423,8 @@ strong { color: var(--charcoal); font-weight: 600; }
             </div>
           </div>
         </div>
-      </div><!-- /ex1 -->
+      </div>
 
-      <!-- EXAMPLE 2 -->
       <div class="ex-panel" id="ex2">
         <div class="card card-teal">
           <h2>Example 2: 4×4 Matrix</h2>
@@ -1548,15 +1499,12 @@ strong { color: var(--charcoal); font-weight: 600; }
             </div>
           </div>
         </div>
-      </div><!-- /ex2 -->
+      </div>
 
-    </div><!-- /sec-examples -->
+    </div>
 
   </main>
 
-  <!-- ═══════════════════════════════════
-       RIGHT COLUMN — CALCULATOR
-  ════════════════════════════════════ -->
   <aside class="calc-col">
     <div class="calc-col-bg" aria-hidden="true">
       <div class="calc-bg-glow"></div>
@@ -1596,14 +1544,12 @@ strong { color: var(--charcoal); font-weight: 600; }
 
     <div class="sci-cal">
 
-      <!-- Display -->
       <div class="cal-display">
         <div class="display-label">det ( A ) =</div>
         <div class="display-value" id="disp-val">—</div>
         <div class="display-status" id="disp-status">Enter matrix and press Compute</div>
       </div>
 
-      <!-- Size selector -->
       <div class="size-row">
         <span class="size-label">n =</span>
         <button type="button" class="size-key" data-n="2" onclick="setSize(2)">2</button>
@@ -1627,12 +1573,10 @@ strong { color: var(--charcoal); font-weight: 600; }
         </div>
       </div>
 
-      <!-- Matrix input with bracket styling -->
       <div class="matrix-wrap" id="matrix-wrap">
-        <!-- Built by JS -->
+
       </div>
 
-      <!-- Presets -->
       <div class="preset-row">
         <button class="preset-key" onclick="loadPreset([[2,-1,3],[0,4,-2],[1,5,6]])">Ex. 1</button>
         <button class="preset-key" onclick="loadPreset([[1,2,0,-1],[3,-1,2,0],[0,1,4,2],[-2,0,1,3]])">Ex. 2</button>
@@ -1640,15 +1584,13 @@ strong { color: var(--charcoal); font-weight: 600; }
         <button class="preset-key" onclick="loadPreset([[1,2],[3,4]])">2×2</button>
       </div>
 
-      <!-- Action keys -->
       <div class="action-row">
         <button class="key-compute" onclick="calculate()">Compute det(A)</button>
         <button class="key-clear"   onclick="clearMatrix()">Clear</button>
       </div>
 
-    </div><!-- /sci-cal -->
+    </div>
 
-    <!-- Result + steps -->
     <div class="result-panel" id="result-panel">
       <div class="result-badge" id="result-badge">
         <div class="rb-val" id="rb-val">—</div>
@@ -1665,15 +1607,13 @@ strong { color: var(--charcoal); font-weight: 600; }
 
     <div id="error-panel"></div>
 
-    </div><!-- /calc-col-inner -->
+    </div>
   </aside>
 
-</div><!-- /page-body -->
+</div>
 
 <script>
-/* 
- SECTION / EXAMPLE NAVIGATION
-*/
+
 function moveSecSlider(btn) {
   const slider = document.getElementById('sec-tab-slider');
   if (!slider || !btn) return;
@@ -1726,9 +1666,6 @@ function showEx(n) {
   });
 }
 
-/* 
- MATRIX BUILDER
- */
 const MIN_MATRIX_N = 1;
 const MAX_MATRIX_N = 6;
 let currentSize = 3;
@@ -1927,9 +1864,6 @@ function loadPreset(mat) {
   }, 30);
 }
 
-/* 
-   API + RENDER
- */
 function fmt(v) {
   return Number.isInteger(v) ? v : parseFloat(v.toFixed(6));
 }
@@ -2044,9 +1978,6 @@ window.addEventListener('resize', () => {
   }, 120);
 });
 
-/* 
-CALCULATOR TOAST + QUICK GUIDE
- */
 const calcToast = document.getElementById('calc-toast');
 const calcToastText = calcToast?.querySelector('.calc-toast-text');
 let calcToastHideTimer = null;
@@ -2158,9 +2089,6 @@ document.querySelector('.sci-cal')?.addEventListener('wheel', e => {
   }
 }, { capture: true });
 
-/*
-  BITE-SIZE HOVER TIPS
- */
 const tipPopup = document.getElementById('tip-popup');
 const tipTextEl = tipPopup?.querySelector('.tip-text');
 let tipActiveEl = null;
